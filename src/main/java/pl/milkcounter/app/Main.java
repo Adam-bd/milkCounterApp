@@ -1,5 +1,6 @@
 package pl.milkcounter.app;
 
+import pl.milkcounter.model.Child;
 import pl.milkcounter.model.MilkPortion;
 import pl.milkcounter.model.MilkStorage;
 
@@ -28,6 +29,15 @@ public class Main {
 
         System.out.println(storage.takeMilk(LocalDate.parse("13.05.2026", polskiFormat), 240));
         System.out.println(storage.getTotal());
+
+        Child child = new Child(LocalDate.parse("15.10.2025", polskiFormat), 5.6f);
+        child.addDailyLog(900);
+        child.addDailyLog(820);
+        child.addDailyLog(850);
+        child.addDailyLog(830);
+        child.addDailyLog(880);
+
+        System.out.println(child.dailyDemandOfMilk());
 
     }
 }
