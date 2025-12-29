@@ -26,18 +26,15 @@ public class Main {
         System.out.println("\n--- KROK 2: DODAWANIE NOWYCH PORCJI ---");
 
         MilkPortion p1 = new MilkPortion(LocalDate.parse("25.12.2025", polskiFormat), 150);
-        MilkPortion p2 = new MilkPortion(LocalDate.parse("27.12.2025", polskiFormat), 120);
-        MilkPortion p3 = new MilkPortion(LocalDate.parse("20.10.2025", polskiFormat), 130);
+        MilkPortion p2 = new MilkPortion(LocalDate.parse("26.12.2025", polskiFormat), 150);
+        MilkPortion p3 = new MilkPortion(LocalDate.parse("20.10.2025", polskiFormat), 40);
 
         storage.addPortion(p1);
         storage.addPortion(p2);
         storage.addPortion(p3);
 
         System.out.println("Dodano nowe mleko. Aktualny stan: " + storage.getTotal() + " ml");
-        // Opcjonalnie: podgląd listy, żeby zobaczyć czy są stare i nowe
-        // System.out.println(storage.getPortions());
 
-        // 3. Konfiguracja dziecka (tak jak miałeś)
         System.out.println("\n--- KROK 3: OBLICZENIA I SYMULACJA ---");
         Child child = new Child(LocalDate.parse("15.10.2025", polskiFormat), 5.6f);
         child.addDailyLog(900, 8);
@@ -54,7 +51,7 @@ public class Main {
         LocalDate endOfSupply = simulator.endOfSupply(storage, child);
         System.out.println(">>> Zapasy skończą się dnia: " + endOfSupply + " <<<");
 
-        // 5. ZAPIS (Najważniejszy moment!)
+        // 5. ZAPIS
         System.out.println("\n--- KROK 4: ZAPISYWANIE ---");
         fileReader.saveToFile(storage);
     }
