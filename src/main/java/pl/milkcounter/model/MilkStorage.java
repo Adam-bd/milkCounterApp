@@ -52,4 +52,16 @@ public class MilkStorage {
         portions.removeAll(portionsToThrowOut);
         return portionsToTakeOut;
     }
+
+    public MilkStorage copy() {
+        MilkStorage copiedStorage = new MilkStorage();
+        for (MilkPortion portion : portions) {
+            copiedStorage.addPortion(portion);
+        }
+        return copiedStorage;
+    }
+
+    public boolean isEmpty(){
+        return portions.isEmpty();
+    }
 }
