@@ -64,4 +64,24 @@ public class MilkStorage {
     public boolean isEmpty(){
         return portions.isEmpty();
     }
+
+    public void unfreezeMilk(MilkPortion portion) {
+        portions.remove(portion);
+    }
+
+    public int getExpiredTotal() {
+        int sum = 0;
+        LocalDate today = LocalDate.now();
+        for (MilkPortion p : portions) {
+            if (p.isExpired(today)) {
+                sum += p.getPortionOfMilk();
+            }
+        }
+        return sum;
+    }
+
+    public void removeAllExpired() {
+        LocalDate today = LocalDate.now();
+        portions.removeIf(p -> p.isExpired(today));
+    }
 }

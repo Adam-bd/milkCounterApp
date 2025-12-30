@@ -36,7 +36,7 @@ public class Main {
         System.out.println("Dodano nowe mleko. Aktualny stan: " + storage.getTotal() + " ml");
 
         System.out.println("\n--- KROK 3: OBLICZENIA I SYMULACJA ---");
-        Child child = new Child(LocalDate.parse("15.10.2025", polskiFormat), 5.6f);
+        Child child = new Child("Helenka", LocalDate.parse("15.10.2025", polskiFormat), 5.6f);
         child.addDailyLog(900, 8);
         child.addDailyLog(820, 6);
         child.addDailyLog(850, 6);

@@ -8,19 +8,41 @@ import java.util.List;
 import static java.lang.Math.round;
 
 public class Child {
-    private final LocalDate birthDate;
+    private String name;
+    private LocalDate birthDate;
     private float babyWeight;
 
     private List<Integer> historyOfVolumeCount = new ArrayList<>();
     private List<Integer> historyOfBottleCount = new ArrayList<>();
 
-    public Child(LocalDate birthDate, float babyWeight) {
+    public Child(String name, LocalDate birthDate, float babyWeight) {
+        this.name = name;
         this.birthDate = birthDate;
         this.babyWeight = babyWeight;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
     public void setBabyWeight(float babyWeight) {
         this.babyWeight = babyWeight;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public float getBabyWeight() {
+        return babyWeight;
     }
 
     public void addDailyLog(int totalMilkDrunk, int numberOfFeedings) {
