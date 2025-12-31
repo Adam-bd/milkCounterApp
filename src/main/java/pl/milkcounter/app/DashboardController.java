@@ -1,11 +1,16 @@
 package pl.milkcounter.app;
 
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import org.w3c.dom.css.CSSStyleRule;
 import pl.milkcounter.io.AppFileReader;
+import pl.milkcounter.io.ReportGenerator;
 import pl.milkcounter.logic.SupplySimulator;
 import pl.milkcounter.model.ChildData;
 import pl.milkcounter.model.MilkPortion;
@@ -15,7 +20,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
+import java.util.*;
 
 public class DashboardController {
     @FXML private Label totalStockLabel;
@@ -39,14 +44,25 @@ public class DashboardController {
     @FXML private RadioButton boyRadio;
     @FXML private RadioButton girlRadio;
     @FXML private LineChart<String, Number> weightChart;
+    @FXML private HBox historyInputBox;
+    @FXML private DatePicker historyDatePicker;
+    @FXML private TextField historyWeightField;
+    @FXML private ListView<String> suggestionListView;
+    @FXML private Label suggestionSummaryLabel;
+    @FXML private VBox assistantPanel;
+    @FXML private Button toggleAssistantButton;
 
     private MilkStorage storage;
     private ChildData child;
     private AppFileReader fileReader;
     private SupplySimulator simulator;
     private Map<LocalDate, Float> weightHistory;
+    private List<MilkPortion> currentSugestion = new ArrayList<>();
     private int todayMilkSum = 0;
     private int todayBottlesCount = 0;
+
+    private final DateTimeFormatter polishFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private final DateTimeFormatter shortDateFormat = DateTimeFormatter.ofPattern("dd.MM");
 
     public void initialize() {
         fileReader = new AppFileReader();
@@ -78,9 +94,9 @@ public class DashboardController {
                 if (item == null || empty) {
                     setStyle("");
                 } else if (item.isExpired(LocalDate.now())) {
-                    setStyle("-fx-background-color: #ffcdd2; -fx-text-fill: #b71c1c;"); // Czerwony
+                    setStyle("-fx-background-color: #ffcdd2; -fx-text-fill: #b71c1c;"); //na czerwono
                 } else {
-                    setStyle(""); // Normalny
+                    setStyle("");
                 }
             }
         });
@@ -88,7 +104,7 @@ public class DashboardController {
         //ustawianie kolumn w Tabeli (Magazyn)
         dateColumn.setCellValueFactory(new PropertyValueFactory<>("dateOfFreezing"));
         amountColumn.setCellValueFactory(new PropertyValueFactory<>("portionOfMilk"));
-//formatowanie daty w tabeli (dd.MM.yyyy)
+        //formatowanie daty w tabeli (dd.MM.yyyy)
         dateColumn.setCellFactory(column -> new TableCell<MilkPortion, LocalDate>() {
             @Override
             protected void updateItem(LocalDate item, boolean empty) {
@@ -96,7 +112,7 @@ public class DashboardController {
                 if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(item.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                    setText(item.format(polishFormat));
                 }
             }
         });
@@ -173,17 +189,15 @@ public class DashboardController {
             //sprawdzamy czy pola nie są puste
             if (date != null && !amountText.isEmpty()) {
                 int amount = Integer.parseInt(amountText);
-
                 storage.addPortion(new MilkPortion(date, amount));
-
                 fileReader.saveToFile(storage);
-
                 amountField.clear();
                 datePicker.setValue(null);
 
                 refreshView();
             }
         } catch (NumberFormatException e) {
+            showError("Błąd", "Wpisano tekst zamiast liczby!");
             System.out.println("Błąd: Wpisano tekst zamiast liczby!");
         }
     }
@@ -209,10 +223,11 @@ public class DashboardController {
         dailyDemandLabel.setText(demand + " ml/dzień");
 
         LocalDate endDate = simulator.endOfSupply(storage, child);
-        runoutDateLabel.setText(endDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        runoutDateLabel.setText(endDate.format(polishFormat));
 
         updateAgeLabel();
         updateTodayLabel();
+        updateSuggestionPanel();
     }
 
     @FXML
@@ -234,6 +249,7 @@ public class DashboardController {
                 System.out.println("Dodano porcję: " + singlePortion + ". Razem dziś: " + todayMilkSum);
             }
         } catch (NumberFormatException e) {
+            showError("Błąd", "Wpisz poprawną liczbę!");
             System.out.println("Błąd: Wpisz poprawną liczbę!");
         }
     }
@@ -318,9 +334,139 @@ public class DashboardController {
 
         //przechodzimy przez historię i dodajemy punkty
         for (Map.Entry<LocalDate, Float> entry : weightHistory.entrySet()) {
-            String dateLabel = entry.getKey().format(DateTimeFormatter.ofPattern("dd.MM"));
+            String dateLabel = entry.getKey().format(shortDateFormat);
             series.getData().add(new XYChart.Data<>(dateLabel, entry.getValue()));
         }
         weightChart.getData().add(series);
+
+        for(XYChart.Data<String, Number> data : series.getData()) {
+            Node node = data.getNode();
+            if (node != null) {
+                String string = data.getYValue() + "kg, dnia: " + data.getXValue();
+                Tooltip tooltip = new Tooltip(string);
+                tooltip.setShowDelay(javafx.util.Duration.millis(100));
+                Tooltip.install(node, tooltip);
+
+                node.setOnMouseEntered(event -> {
+                    node.setStyle("-fx-scale-x: 1.5; -fx-scale-y: 1.5; -fx-background-color: #ff0000;");
+                });
+
+                node.setOnMouseExited(event -> {
+                    node.setStyle("");
+                });
+            }
+        }
+    }
+
+    @FXML
+    private void handleToggleWeightHistoryPanel() {
+        boolean isVisible = historyInputBox.isVisible();
+        historyInputBox.setVisible(!isVisible);
+        historyInputBox.setManaged(!isVisible);
+
+        if (!isVisible) {
+            historyDatePicker.setValue(null);
+            historyWeightField.clear();
+        }
+    }
+
+    @FXML
+    private void handleSaveWeightHistory() {
+        try {
+            LocalDate date = historyDatePicker.getValue();
+            String weightText = historyWeightField.getText();
+
+            if(date.isAfter(LocalDate.now())) {
+                showError("Błędna data", "Chcesz dodać wagę w dniu, którego jeszcze nie ma!");
+                System.out.println("Chcesz dodać wagę w dniu, którego jeszcze nie ma!");
+                return;
+            }
+
+            if (date != null && weightText != null){
+                float weight = Float.parseFloat(weightText.replace(",", "."));
+                weightHistory.put(date, weight);
+                fileReader.saveWeightHistory(weightHistory);
+                updateChart();
+                System.out.println("Dodano wagę: " + weight + "kg z dnia: " + date);
+                handleToggleWeightHistoryPanel();
+            }
+        } catch (NumberFormatException e) {
+            showError("Błąd", "Wpisz poprawną wagę!");
+            System.out.println("Błąd: Wpisz poprawną wagę!");
+        }
+    }
+
+    //error dla użytkownika
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void updateSuggestionPanel() {
+        if(suggestionListView == null) {
+            return;
+        }
+
+        int demand = child.getDemandForBabyAge(LocalDate.now());
+        currentSugestion = storage.suggestPortionsToUnfreeze(demand);
+        suggestionListView.getItems().clear();
+        int currentVolume = 0;
+
+        for (MilkPortion portion : currentSugestion) {
+            currentVolume += portion.getPortionOfMilk();
+            String string = portion.getDateOfFreezing().format(shortDateFormat) + ": " + portion.getPortionOfMilk() +"ml";
+            suggestionListView.getItems().add(string);
+        }
+
+        suggestionSummaryLabel.setText("Razem: " + currentVolume + "ml");
+        if(currentVolume >= demand) {
+            suggestionSummaryLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+        } else {
+            suggestionSummaryLabel.setStyle("-fx-text-fill: #ef6c00; -fx-font-weight: bold;");
+        }
+    }
+
+    @FXML
+    private void handleUnfreezeSuggestion() {
+        if(currentSugestion.isEmpty()) {
+            showError("Pusto", "Brak woreczków do zaplanowania!");
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Potwierdzenie");
+        alert.setHeaderText("Rozmrozić sugerowany zestaw?");
+        alert.setContentText("Usuniemy " + currentSugestion.size() + " woreczków z magazynu.");
+        if(alert.showAndWait().get() == ButtonType.OK) {
+            for(MilkPortion portion : currentSugestion) {
+                storage.unfreezeMilk(portion);
+            }
+            fileReader.saveToFile(storage);
+            refreshView();
+        }
+    }
+
+    @FXML private void handleGeneratingReport() {
+        ReportGenerator report = new ReportGenerator();
+        int demand = child.getDemandForBabyAge(LocalDate.now());
+        report.generateReport(child, weightHistory, demand);
+    }
+
+    @FXML
+    private void handleToggleAssistant() {
+        boolean isVisible = assistantPanel.isVisible();
+        assistantPanel.setVisible(!isVisible);
+        assistantPanel.setManaged(!isVisible); //wyśrodkowanie pozostałego
+
+        if (isVisible) {
+            toggleAssistantButton.setText("Pokaż Plan na Jutro ⬇");
+            toggleAssistantButton.setStyle("-fx-font-size: 10px; -fx-background-color: #e0e0e0;"); // Szary
+        } else {
+            toggleAssistantButton.setText("Ukryj Plan na Jutro ⬆");
+            toggleAssistantButton.setStyle("-fx-font-size: 10px; -fx-background-color: #ffe0b2;"); // Pomarańczowy
+        }
     }
 }

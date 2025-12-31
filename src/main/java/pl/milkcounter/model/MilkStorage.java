@@ -84,4 +84,44 @@ public class MilkStorage {
         LocalDate today = LocalDate.now();
         portions.removeIf(p -> p.isExpired(today));
     }
+
+    public List<MilkPortion> suggestPortionsToUnfreeze(int demand) {
+        LocalDate oldMilk = LocalDate.now().minusDays(30);
+        List<MilkPortion> suggestions = new ArrayList<>();
+        List<MilkPortion> copy = new ArrayList<>(portions);
+        copy.removeIf(portion -> portion.isExpired(LocalDate.now()));
+        int currentVolume = 0;
+        boolean hasOldMilk = copy.stream().anyMatch(portion -> portion.getDateOfFreezing().isBefore(oldMilk));
+        if(hasOldMilk) {
+            copy.sort(Comparator.comparing(MilkPortion::getDateOfFreezing));
+            for(MilkPortion portion : copy) {
+                suggestions.add(portion);
+                currentVolume += portion.getPortionOfMilk();
+                if(currentVolume >= demand) {
+                    break;
+                }
+            }
+            return suggestions;
+        }
+
+        copy.sort((portion1, portion2) -> Integer.compare(portion2.getPortionOfMilk(), portion1.getPortionOfMilk()));
+        for(MilkPortion portion : copy) {
+            suggestions.add(portion);
+            currentVolume += portion.getPortionOfMilk();
+            if(currentVolume >= demand) {
+                break;
+            }
+        }
+
+        if(currentVolume < demand) {
+            copy.removeAll(suggestions);
+            copy.sort(Comparator.comparingInt(MilkPortion::getPortionOfMilk));
+            if(!copy.isEmpty()) {
+                suggestions.add(copy.getFirst());
+            }
+        }
+
+        suggestions.sort(Comparator.comparing(MilkPortion::getDateOfFreezing));
+        return suggestions;
+    }
 }

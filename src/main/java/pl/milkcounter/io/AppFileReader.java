@@ -15,15 +15,13 @@ public class AppFileReader {
     private static final String FILE_USTAWIENIA = "ustawienia.csv";
     private static final String FILE_HISTORIA = "historia_wagi.csv";
 
-    // Format do zapisu (żeby było ładnie w pliku)
     private final DateTimeFormatter polishFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    // --- 1. MAGAZYN (Mleko) ---
-
+    //MAGAZYN
     public void saveToFile(MilkStorage milkStorage) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_MAGAZYN))) {
             for (MilkPortion portion : milkStorage.getPortions()) {
-                // Zapisujemy w formacie: Data : Ilośćml
+                //format-> Data : Ilośćml
                 String formattedDate = portion.getDateOfFreezing().format(polishFormat);
                 String line = formattedDate + ":" + portion.getPortionOfMilk() + "ml";
                 bw.write(line);
@@ -45,14 +43,11 @@ public class AppFileReader {
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
-
-                // Dzielimy po dwukropku, średniku lub tabulatorze
                 String[] parts = line.split("[:;\\t]");
 
                 if (parts.length >= 2) {
                     try {
                         LocalDate date = parseFlexibleDate(parts[0]);
-                        // Usuwamy "ml", spacje i ewentualne cudzysłowy
                         String amountStr = parts[1].toLowerCase().replace("ml", "").replace("\"", "").trim();
                         int amount = Integer.parseInt(amountStr);
 
@@ -70,11 +65,9 @@ public class AppFileReader {
         return milkStorage;
     }
 
-    // --- 2. USTAWIENIA DZIECKA ---
-
+    //DZIECKO
     public void saveChildData(ChildData childData) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_USTAWIENIA))) {
-            // Zapisujemy przy użyciu średnika
             String line = String.format("%s;%s;%s;%s;%d;%d;%s",
                     childData.getName(),
                     childData.getBirthDate().toString(),
@@ -97,15 +90,12 @@ public class AppFileReader {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
             if (line != null) {
-                // Dzielimy po średniku, dwukropku, tabulatorze lub kresce pionowej
                 String[] parts = line.split("[;:\\t|]");
 
-                if (parts.length >= 3) { // Musi być przynajmniej imię, data i waga
+                if (parts.length >= 3) { //imie, data, waga
                     String name = parts[0].trim();
                     LocalDate dob = parseFlexibleDate(parts[1]);
                     float weight = Float.parseFloat(parts[2].replace(",", ".").replace("\"", ""));
-
-                    // Wartości domyślne, jeśli plik jest krótki (stary format)
                     LocalDate lastSaveDate = LocalDate.now();
                     int savedSum = 0;
                     int savedBottles = 0;
@@ -116,7 +106,6 @@ public class AppFileReader {
                     if (parts.length > 5) savedBottles = Integer.parseInt(parts[5].trim());
                     if (parts.length > 6) gender = parts[6].trim().replace("\"", "");
 
-                    // Resetowanie licznika dziennego
                     if (lastSaveDate != null && !lastSaveDate.equals(LocalDate.now())) {
                         savedSum = 0;
                         savedBottles = 0;
@@ -132,12 +121,9 @@ public class AppFileReader {
         return null;
     }
 
-    // --- 3. HISTORIA WAGI ---
-
     public void saveWeightHistory(Map<LocalDate, Float> history) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_HISTORIA))) {
             for (Map.Entry<LocalDate, Float> entry : history.entrySet()) {
-                // Zapisujemy: Data;Waga
                 bw.write(entry.getKey() + ";" + entry.getValue());
                 bw.newLine();
             }
@@ -157,21 +143,11 @@ public class AppFileReader {
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
-
-                // MAGIA: Dzieli po ; lub : lub TAB lub |
                 String[] parts = line.split("[;:\\t|]");
-
-                // Awaryjnie: jeśli nie znalazł separatora, a jest przecinek (np. Excel USA), spróbuj po przecinku
-                if (parts.length < 2 && line.contains(",")) {
-                    // Uwaga: to ryzykowne przy liczbach 5,5 ale próbujemy
-                    parts = line.split(",");
-                }
 
                 if (parts.length >= 2) {
                     try {
-                        // Czyszczenie śmieci (cudzysłowy z excela)
                         String dateStr = parts[0].trim().replace("\"", "");
-                        // Zamiana przecinka na kropkę w wadze
                         String weightStr = parts[1].trim().replace("\"", "").replace(",", ".");
 
                         LocalDate date = parseFlexibleDate(dateStr);
@@ -191,8 +167,7 @@ public class AppFileReader {
         return history;
     }
 
-    // --- POMOCNICZA METODA DO DAT ---
-    // Rozumie formaty: 2025-10-15, 15.10.2025, 2025/10/15
+    //metoda do rozpoznawania różnych formatów dat
     private LocalDate parseFlexibleDate(String dateStr) {
         dateStr = dateStr.trim().replace("\"", "");
         try {
