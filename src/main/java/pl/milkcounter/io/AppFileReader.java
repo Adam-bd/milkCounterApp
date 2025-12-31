@@ -5,21 +5,33 @@ import pl.milkcounter.model.MilkPortion;
 import pl.milkcounter.model.MilkStorage;
 
 import java.io.*;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class AppFileReader {
-    private static final String FILE_MAGAZYN = "magazyn.csv";
-    private static final String FILE_USTAWIENIA = "ustawienia.csv";
-    private static final String FILE_HISTORIA = "historia_wagi.csv";
+    private File fileMagazyn;
+    private File fileUstawienia;
+    private File fileHistoria;
 
     private final DateTimeFormatter polishFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
+    public AppFileReader(String folderPath) {
+        this.fileMagazyn = Paths.get(folderPath, "magazyn.csv").toFile();
+        this.fileUstawienia = Paths.get(folderPath, "ustawienia.csv").toFile();
+        this.fileHistoria = Paths.get(folderPath, "historia_wagi.csv").toFile();
+
+        File folder = new File(folderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+    }
+
     //MAGAZYN
     public void saveToFile(MilkStorage milkStorage) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_MAGAZYN))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileMagazyn))) {
             for (MilkPortion portion : milkStorage.getPortions()) {
                 //format-> Data : Ilośćml
                 String formattedDate = portion.getDateOfFreezing().format(polishFormat);
@@ -35,7 +47,7 @@ public class AppFileReader {
 
     public MilkStorage loadFromFile() {
         MilkStorage milkStorage = new MilkStorage();
-        File file = new File(FILE_MAGAZYN);
+        File file = new File(String.valueOf(fileMagazyn));
         if (!file.exists()) return milkStorage;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -67,7 +79,7 @@ public class AppFileReader {
 
     //DZIECKO
     public void saveChildData(ChildData childData) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_USTAWIENIA))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileUstawienia))) {
             String line = String.format("%s;%s;%s;%s;%d;%d;%s",
                     childData.getName(),
                     childData.getBirthDate().toString(),
@@ -84,7 +96,7 @@ public class AppFileReader {
     }
 
     public ChildData loadChildData() {
-        File file = new File(FILE_USTAWIENIA);
+        File file = new File(String.valueOf(fileUstawienia));
         if (!file.exists()) return null;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -122,7 +134,7 @@ public class AppFileReader {
     }
 
     public void saveWeightHistory(Map<LocalDate, Float> history) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_HISTORIA))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileHistoria))) {
             for (Map.Entry<LocalDate, Float> entry : history.entrySet()) {
                 bw.write(entry.getKey() + ";" + entry.getValue());
                 bw.newLine();
@@ -134,7 +146,7 @@ public class AppFileReader {
 
     public Map<LocalDate, Float> loadWeightHistory() {
         Map<LocalDate, Float> history = new TreeMap<>();
-        File file = new File(FILE_HISTORIA);
+        File file = new File(String.valueOf(fileHistoria));
 
         if (!file.exists()) return history;
 

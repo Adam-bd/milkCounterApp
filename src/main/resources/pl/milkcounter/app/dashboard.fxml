@@ -9,7 +9,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -39,49 +38,49 @@
                         <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
                     </padding>
 
-                    <Label text="MILK COUNTER" styleClass="header-title" />
+                    <Label styleClass="header-title" text="MILK COUNTER" />
 
                     <HBox alignment="CENTER" spacing="15.0" styleClass="card">
                         <padding>
-                            <Insets top="15" right="15" bottom="15" left="15"/>
+                            <Insets bottom="15" left="15" right="15" top="15" />
                         </padding>
 
-                        <VBox alignment="CENTER" prefWidth="150.0" spacing="5" styleClass="stat-box" style="-fx-background-color: #4fc3f7;">
-                            <Label text="W MAGAZYNIE" styleClass="stat-label"/>
-                            <Label fx:id="totalStockLabel" text="0 ml" styleClass="stat-value"/>
+                        <VBox alignment="CENTER" prefWidth="150.0" spacing="5" style="-fx-background-color: #4fc3f7;" styleClass="stat-box">
+                            <Label styleClass="stat-label" text="W MAGAZYNIE" />
+                            <Label fx:id="totalStockLabel" styleClass="stat-value" text="0 ml" />
                         </VBox>
 
-                        <VBox alignment="CENTER" prefWidth="150.0" spacing="5" styleClass="stat-box" style="-fx-background-color: #ba68c8;">
-                            <Label text="ZAPOTRZEBOWANIE" styleClass="stat-label"/>
-                            <Label fx:id="dailyDemandLabel" text="0 ml" styleClass="stat-value"/>
+                        <VBox alignment="CENTER" prefWidth="150.0" spacing="5" style="-fx-background-color: #ba68c8;" styleClass="stat-box">
+                            <Label styleClass="stat-label" text="ZAPOTRZEBOWANIE" />
+                            <Label fx:id="dailyDemandLabel" styleClass="stat-value" text="0 ml" />
                         </VBox>
 
-                        <VBox alignment="CENTER" prefWidth="150.0" spacing="5" styleClass="stat-box" style="-fx-background-color: #ef5350;">
-                            <Label text="KONIEC ZAPASÓW" styleClass="stat-label"/>
-                            <Label fx:id="runoutDateLabel" text="..." styleClass="stat-value"/>
+                        <VBox alignment="CENTER" prefWidth="150.0" spacing="5" style="-fx-background-color: #ef5350;" styleClass="stat-box">
+                            <Label styleClass="stat-label" text="KONIEC ZAPASÓW" />
+                            <Label fx:id="runoutDateLabel" styleClass="stat-value" text="..." />
                         </VBox>
                     </HBox>
 
                     <HBox alignment="CENTER" spacing="15.0" styleClass="card">
-                        <Label text="Nowa porcja:" style="-fx-font-weight: bold; -fx-text-fill: #546e7a;"/>
-                        <DatePicker fx:id="datePicker" promptText="Data mrożenia" prefWidth="130.0" />
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #546e7a;" text="Nowa porcja:" />
+                        <DatePicker fx:id="datePicker" prefWidth="130.0" promptText="Data mrożenia" />
                         <TextField fx:id="amountField" prefWidth="90.0" promptText="Ilość (ml)" />
-                        <Button onAction="#handleAddAction" text="ZAPISZ DO LODÓWKI" styleClass="button, btn-success" />
+                        <Button onAction="#handleAddAction" styleClass="button, btn-success" text="ZAPISZ DO LODÓWKI" />
                     </HBox>
 
                     <HBox alignment="CENTER" spacing="15.0">
-                        <Label text="Zarządzanie Zapasami" styleClass="section-title"/>
-                        <Button fx:id="toggleAssistantButton" onAction="#handleToggleAssistant" text="Ukryj Plan na Jutro ⬆" styleClass="button, btn-small"/>
+                        <Label styleClass="section-title" text="Zarządzanie Zapasami" />
+                        <Button fx:id="toggleAssistantButton" onAction="#handleToggleAssistant" styleClass="button, btn-small" text="Ukryj Plan na Jutro ⬆" />
                     </HBox>
 
-                    <HBox spacing="20.0" alignment="TOP_CENTER">
+                    <HBox alignment="TOP_CENTER" spacing="20.0">
                         <children>
 
-                            <VBox spacing="10.0" HBox.hgrow="ALWAYS" styleClass="card">
+                            <VBox spacing="10.0" styleClass="card" HBox.hgrow="ALWAYS">
                                 <children>
                                     <HBox alignment="CENTER_LEFT" spacing="10">
-                                        <Label text="Twoje Mrożonki" style="-fx-font-weight: bold;"/>
-                                        <Label fx:id="expiredLabel" text="Stan OK" textFill="#4caf50" style="-fx-font-size: 11px;"/>
+                                        <Label style="-fx-font-weight: bold;" text="Twoje Mrożonki" />
+                                        <Label fx:id="expiredLabel" style="-fx-font-size: 11px;" text="Stan OK" textFill="#4caf50" />
                                     </HBox>
 
                                     <TableView fx:id="milkTable" prefHeight="250.0">
@@ -94,25 +93,25 @@
                                         </columnResizePolicy>
                                     </TableView>
 
-                                    <HBox spacing="10.0" alignment="CENTER_LEFT">
-                                        <Button onAction="#handleUnfreezeAction" text="Rozmroź zaznaczone" styleClass="button, btn-primary" />
-                                        <Button onAction="#handleRemoveExpiredAction" text="Usuń przeterminowane" styleClass="button, btn-danger" />
+                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                        <Button onAction="#handleUnfreezeAction" styleClass="button, btn-primary" text="Rozmroź zaznaczone" />
+                                        <Button onAction="#handleRemoveExpiredAction" styleClass="button, btn-danger" text="Usuń przeterminowane" />
                                     </HBox>
                                 </children>
                             </VBox>
 
                             <VBox fx:id="assistantPanel" prefWidth="260.0" spacing="10.0" styleClass="card-assistant">
                                 <children>
-                                    <Label text="📅 PLAN NA JUTRO" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f57c00;"/>
-                                    <Label text="Sugerowane woreczki:" style="-fx-font-size: 11px; -fx-text-fill: #ef6c00;"/>
+                                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f57c00;" text="📅 PLAN NA JUTRO" />
+                                    <Label style="-fx-font-size: 11px; -fx-text-fill: #ef6c00;" text="Sugerowane woreczki:" />
 
-                                    <ListView fx:id="suggestionListView" prefHeight="150.0" style="-fx-background-color: transparent; -fx-border-color: #ffcc80; -fx-border-radius: 5;"/>
+                                    <ListView fx:id="suggestionListView" prefHeight="150.0" style="-fx-background-color: transparent; -fx-border-color: #ffcc80; -fx-border-radius: 5;" />
 
                                     <HBox alignment="CENTER_RIGHT">
-                                        <Label fx:id="suggestionSummaryLabel" text="Razem: 0 ml" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #ef6c00;" />
+                                        <Label fx:id="suggestionSummaryLabel" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #ef6c00;" text="Razem: 0 ml" />
                                     </HBox>
 
-                                    <Button onAction="#handleUnfreezeSuggestion" maxWidth="Infinity" text="ROZMROŹ CAŁY ZESTAW" style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10;">
+                                    <Button maxWidth="Infinity" onAction="#handleUnfreezeSuggestion" style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10;" text="ROZMROŹ CAŁY ZESTAW">
                                     </Button>
                                 </children>
                             </VBox>
@@ -141,20 +140,20 @@
                             </padding>
                             <children>
 
-                                <VBox styleClass="card" spacing="15">
-                                    <Label text="Profil Dziecka" styleClass="section-title"/>
+                                <VBox spacing="15" styleClass="card">
+                                    <Label styleClass="section-title" text="Profil Dziecka" />
 
                                     <HBox alignment="CENTER" spacing="20">
                                         <VBox spacing="5">
-                                            <Label text="Imię" styleClass="stat-label"/>
+                                            <Label styleClass="stat-label" text="Imię" />
                                             <TextField fx:id="babyName" />
                                         </VBox>
                                         <VBox spacing="5">
-                                            <Label text="Urodziny" styleClass="stat-label"/>
-                                            <DatePicker fx:id="birthDatePicker" prefWidth="130"/>
+                                            <Label styleClass="stat-label" text="Urodziny" />
+                                            <DatePicker fx:id="birthDatePicker" prefWidth="130" />
                                         </VBox>
-                                        <VBox spacing="5" alignment="CENTER_LEFT">
-                                            <Label text="Płeć" styleClass="stat-label"/>
+                                        <VBox alignment="CENTER_LEFT" spacing="5">
+                                            <Label styleClass="stat-label" text="Płeć" />
                                             <HBox spacing="10">
                                                 <RadioButton fx:id="boyRadio" selected="true" text="Chłopiec">
                                                     <toggleGroup>
@@ -166,24 +165,27 @@
                                         </VBox>
                                     </HBox>
 
-                                    <Label fx:id="ageLabel" text="Wiek: ..." style="-fx-text-fill: #ff0011; -fx-font-style: italic;" />
+                                    <Label fx:id="ageLabel" style="-fx-text-fill: #ff0011; -fx-font-style: italic;" text="Wiek: ..." />
+                                    <HBox alignment="CENTER_RIGHT">
+                                        <Button onAction="#handleChangeStorageFolder" text="📂 Zmień folder zapisu" styleClass="button, btn-small" style="-fx-text-fill: #78909c; -fx-background-color: transparent; -fx-underline: true; -fx-cursor: hand;"/>
+                                    </HBox>
                                 </VBox>
 
-                                <VBox styleClass="card" spacing="10" VBox.vgrow="ALWAYS">
+                                <VBox spacing="10" styleClass="card" VBox.vgrow="ALWAYS">
                                     <HBox alignment="CENTER_LEFT" spacing="15">
-                                        <Label text="Wzrost Wagi" styleClass="section-title"/>
+                                        <Label styleClass="section-title" text="Wzrost Wagi" />
                                         <HBox alignment="CENTER" spacing="10">
                                             <Label text="Obecna waga:" />
                                             <TextField fx:id="weightField" prefWidth="70.0" />
-                                            <Button onAction="#handleToggleWeightHistoryPanel" text="Uzupełnij historię" styleClass="button, btn-small" />
+                                            <Button onAction="#handleToggleWeightHistoryPanel" styleClass="button, btn-small" text="Uzupełnij historię" />
                                         </HBox>
                                     </HBox>
 
-                                    <HBox fx:id="historyInputBox" alignment="CENTER_LEFT" spacing="10.0" visible="false" managed="false" style="-fx-background-color: #f5f5f5; -fx-padding: 8; -fx-background-radius: 5;">
-                                        <Label text="Dodaj stare ważenie:" style="-fx-font-size: 11px;"/>
-                                        <DatePicker fx:id="historyDatePicker" promptText="Kiedy?" prefWidth="110.0"/>
-                                        <TextField fx:id="historyWeightField" promptText="kg" prefWidth="60.0"/>
-                                        <Button onAction="#handleSaveWeightHistory" text="Dodaj" styleClass="button, btn-success" style="-fx-font-size: 11px;"/>
+                                    <HBox fx:id="historyInputBox" alignment="CENTER_LEFT" managed="false" spacing="10.0" style="-fx-background-color: #f5f5f5; -fx-padding: 8; -fx-background-radius: 5;" visible="false">
+                                        <Label style="-fx-font-size: 11px;" text="Dodaj stare ważenie:" />
+                                        <DatePicker fx:id="historyDatePicker" prefWidth="110.0" promptText="Kiedy?" />
+                                        <TextField fx:id="historyWeightField" prefWidth="60.0" promptText="kg" />
+                                        <Button onAction="#handleSaveWeightHistory" style="-fx-font-size: 11px;" styleClass="button, btn-success" text="Dodaj" />
                                     </HBox>
 
                                     <LineChart fx:id="weightChart" createSymbols="true" legendVisible="false" VBox.vgrow="ALWAYS">
@@ -197,16 +199,16 @@
                                 </VBox>
 
                                 <HBox spacing="20">
-                                    <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="10">
-                                        <Label text="Dzisiejsze karmienie" styleClass="section-title" style="-fx-text-fill: #1976d2;"/>
+                                    <VBox spacing="10" styleClass="card" HBox.hgrow="ALWAYS">
+                                        <Label style="-fx-text-fill: #1976d2;" styleClass="section-title" text="Dzisiejsze karmienie" />
                                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                                             <TextField fx:id="eatenAmountField" prefHeight="35.0" prefWidth="120.0" promptText="Np. 150 ml" />
-                                            <Button onAction="#handleAddLogAction" text="DODAJ PORCJĘ" styleClass="button, btn-primary" />
+                                            <Button onAction="#handleAddLogAction" styleClass="button, btn-primary" text="DODAJ PORCJĘ" />
                                         </HBox>
-                                        <Label fx:id="todayStatsLabel" text="Dzisiaj: 0 ml (0 butelek)" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                                        <Label fx:id="todayStatsLabel" style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Dzisiaj: 0 ml (0 butelek)" />
                                     </VBox>
 
-                                    <Button onAction="#handleGeneratingReport" prefHeight="100" prefWidth="150" styleClass="button" style="-fx-background-color: #607d8b; -fx-text-fill: white;" text="📄 GENERUJ RAPORT" wrapText="true" textAlignment="CENTER"/>
+                                    <Button onAction="#handleGeneratingReport" prefHeight="100" prefWidth="150" style="-fx-background-color: #607d8b; -fx-text-fill: white;" styleClass="button" text="📄 GENERUJ RAPORT" textAlignment="CENTER" wrapText="true" />
                                 </HBox>
 
                             </children>

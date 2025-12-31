@@ -8,14 +8,17 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 import org.w3c.dom.css.CSSStyleRule;
 import pl.milkcounter.io.AppFileReader;
 import pl.milkcounter.io.ReportGenerator;
+import pl.milkcounter.io.StorageConfig;
 import pl.milkcounter.logic.SupplySimulator;
 import pl.milkcounter.model.ChildData;
 import pl.milkcounter.model.MilkPortion;
 import pl.milkcounter.model.MilkStorage;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -55,6 +58,7 @@ public class DashboardController {
     private MilkStorage storage;
     private ChildData child;
     private AppFileReader fileReader;
+    private StorageConfig storageConfig;
     private SupplySimulator simulator;
     private Map<LocalDate, Float> weightHistory;
     private List<MilkPortion> currentSugestion = new ArrayList<>();
@@ -65,7 +69,10 @@ public class DashboardController {
     private final DateTimeFormatter shortDateFormat = DateTimeFormatter.ofPattern("dd.MM");
 
     public void initialize() {
-        fileReader = new AppFileReader();
+        storageConfig = new StorageConfig();
+        String filePath = storageConfig.getActiveDataFolderPath();
+        System.out.println("Używam folder: " + filePath);
+        fileReader = new AppFileReader(filePath);
         simulator = new SupplySimulator();
 
         //wczytanie danych z pliku
@@ -467,6 +474,30 @@ public class DashboardController {
         } else {
             toggleAssistantButton.setText("Ukryj Plan na Jutro ⬆");
             toggleAssistantButton.setStyle("-fx-font-size: 10px; -fx-background-color: #ffe0b2;"); // Pomarańczowy
+        }
+    }
+
+    @FXML
+    private void handleChangeStorageFolder() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Wybierz folder na dane aplikacji");
+
+        //domyślnie otwieramy w aktualnym folderze danych
+        File currentDir = new File(storageConfig.getActiveDataFolderPath());
+        if(currentDir.exists()) {
+            directoryChooser.setInitialDirectory(currentDir);
+        }
+
+        //okno wyboru gdzie zapisywać pliki danych
+        File selectedDirectory = directoryChooser.showDialog(babyName.getScene().getWindow());
+
+        if (selectedDirectory != null) {
+            storageConfig.saveDataFolderPath(selectedDirectory.getAbsolutePath());
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Zmieniono folder");
+            alert.setHeaderText("Wymagany restart");
+            alert.setContentText("Nowa lokalizacja: " + selectedDirectory.getName() + "\n\nUruchom aplikację ponownie, aby wczytać dane z nowego miejsca.");
+            alert.showAndWait();
         }
     }
 }
