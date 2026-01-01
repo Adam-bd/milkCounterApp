@@ -1,6 +1,7 @@
 package pl.milkcounter.io;
 
 import pl.milkcounter.model.ChildData;
+import pl.milkcounter.model.MedicalAppointment;
 import pl.milkcounter.model.MilkPortion;
 import pl.milkcounter.model.MilkStorage;
 
@@ -8,6 +9,8 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -15,6 +18,7 @@ public class AppFileReader {
     private File fileMagazyn;
     private File fileUstawienia;
     private File fileHistoria;
+    private File fileWizyty;
 
     private final DateTimeFormatter polishFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -22,6 +26,7 @@ public class AppFileReader {
         this.fileMagazyn = Paths.get(folderPath, "magazyn.csv").toFile();
         this.fileUstawienia = Paths.get(folderPath, "ustawienia.csv").toFile();
         this.fileHistoria = Paths.get(folderPath, "historia_wagi.csv").toFile();
+        this.fileWizyty = Paths.get(folderPath, "wizyty.csv").toFile();
 
         File folder = new File(folderPath);
         if (!folder.exists()) {
@@ -79,7 +84,7 @@ public class AppFileReader {
 
     //DZIECKO
     public void saveChildData(ChildData childData) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileUstawienia))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileUstawienia))) {
             String line = String.format("%s;%s;%s;%s;%d;%d;%s",
                     childData.getName(),
                     childData.getBirthDate().toString(),
@@ -89,7 +94,7 @@ public class AppFileReader {
                     childData.getSavedBottlesCount(),
                     childData.getGender()
             );
-            writer.write(line);
+            bw.write(line);
         } catch (IOException e) {
             System.out.println("Błąd zapisu ustawień: " + e.getMessage());
         }
@@ -99,24 +104,24 @@ public class AppFileReader {
         File file = new File(String.valueOf(fileUstawienia));
         if (!file.exists()) return null;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line = reader.readLine();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line = br.readLine();
             if (line != null) {
-                String[] parts = line.split("[;:\\t|]");
+                String[] substring = line.split("[;:\\t|]");
 
-                if (parts.length >= 3) { //imie, data, waga
-                    String name = parts[0].trim();
-                    LocalDate dob = parseFlexibleDate(parts[1]);
-                    float weight = Float.parseFloat(parts[2].replace(",", ".").replace("\"", ""));
+                if (substring.length >= 3) { //imie, data, waga
+                    String name = substring[0].trim();
+                    LocalDate dob = parseFlexibleDate(substring[1]);
+                    float weight = Float.parseFloat(substring[2].replace(",", ".").replace("\"", ""));
                     LocalDate lastSaveDate = LocalDate.now();
                     int savedSum = 0;
                     int savedBottles = 0;
                     String gender = "M";
 
-                    if (parts.length > 3) lastSaveDate = parseFlexibleDate(parts[3]);
-                    if (parts.length > 4) savedSum = Integer.parseInt(parts[4].trim());
-                    if (parts.length > 5) savedBottles = Integer.parseInt(parts[5].trim());
-                    if (parts.length > 6) gender = parts[6].trim().replace("\"", "");
+                    if (substring.length > 3) lastSaveDate = parseFlexibleDate(substring[3]);
+                    if (substring.length > 4) savedSum = Integer.parseInt(substring[4].trim());
+                    if (substring.length > 5) savedBottles = Integer.parseInt(substring[5].trim());
+                    if (substring.length > 6) gender = substring[6].trim().replace("\"", "");
 
                     if (lastSaveDate != null && !lastSaveDate.equals(LocalDate.now())) {
                         savedSum = 0;
@@ -155,12 +160,12 @@ public class AppFileReader {
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
-                String[] parts = line.split("[;:\\t|]");
+                String[] substring = line.split("[;:\\t|]");
 
-                if (parts.length >= 2) {
+                if (substring.length >= 2) {
                     try {
-                        String dateStr = parts[0].trim().replace("\"", "");
-                        String weightStr = parts[1].trim().replace("\"", "").replace(",", ".");
+                        String dateStr = substring[0].trim().replace("\"", "");
+                        String weightStr = substring[1].trim().replace("\"", "").replace(",", ".");
 
                         LocalDate date = parseFlexibleDate(dateStr);
                         float weight = Float.parseFloat(weightStr);
@@ -184,14 +189,48 @@ public class AppFileReader {
         dateStr = dateStr.trim().replace("\"", "");
         try {
             if (dateStr.contains(".")) {
-                return LocalDate.parse(dateStr, polishFormat); // 15.10.2025
+                return LocalDate.parse(dateStr, polishFormat);
             } else if (dateStr.contains("/")) {
                 return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             } else {
-                return LocalDate.parse(dateStr); // Standard ISO: 2025-10-15
+                return LocalDate.parse(dateStr);
             }
         } catch (Exception e) {
-            return null; // Nie udało się odczytać daty
+            return null;
         }
+    }
+
+    public void saveAppointments(List<MedicalAppointment> appointments) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileWizyty))) {
+            for (MedicalAppointment app : appointments) {
+                //format -> Data;Opis
+                bw.write(app.getDateOfAppointment() + ";" + app.getDescription());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<MedicalAppointment> loadAppointments() {
+        List<MedicalAppointment> list = new ArrayList<>();
+        if (!fileWizyty.exists()) {
+            return list;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(fileWizyty))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] substring = line.split(";");
+                if (substring.length >= 2) {
+                    LocalDate date = LocalDate.parse(substring[0]);
+                    String desc = substring[1];
+                    list.add(new MedicalAppointment(date, desc));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

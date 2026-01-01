@@ -1,5 +1,7 @@
 package pl.milkcounter.app;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -9,12 +11,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
-import org.w3c.dom.css.CSSStyleRule;
 import pl.milkcounter.io.AppFileReader;
 import pl.milkcounter.io.ReportGenerator;
 import pl.milkcounter.io.StorageConfig;
 import pl.milkcounter.logic.SupplySimulator;
 import pl.milkcounter.model.ChildData;
+import pl.milkcounter.model.MedicalAppointment;
 import pl.milkcounter.model.MilkPortion;
 import pl.milkcounter.model.MilkStorage;
 
@@ -54,6 +56,11 @@ public class DashboardController {
     @FXML private Label suggestionSummaryLabel;
     @FXML private VBox assistantPanel;
     @FXML private Button toggleAssistantButton;
+    @FXML private DatePicker appointmentDatePicker;
+    @FXML private TextField appointmentDescField;
+    @FXML private TableView<MedicalAppointment> appointmentTable;
+    @FXML private TableColumn<MedicalAppointment, LocalDate> colAppointmentDate;
+    @FXML private TableColumn<MedicalAppointment, String> colAppointmentDesc;
 
     private MilkStorage storage;
     private ChildData child;
@@ -62,6 +69,7 @@ public class DashboardController {
     private SupplySimulator simulator;
     private Map<LocalDate, Float> weightHistory;
     private List<MilkPortion> currentSugestion = new ArrayList<>();
+    private ObservableList<MedicalAppointment> appointmentsList;
     private int todayMilkSum = 0;
     private int todayBottlesCount = 0;
 
@@ -74,11 +82,14 @@ public class DashboardController {
         System.out.println("Używam folder: " + filePath);
         fileReader = new AppFileReader(filePath);
         simulator = new SupplySimulator();
+        appointmentsList = FXCollections.observableArrayList();
 
         //wczytanie danych z pliku
         storage = fileReader.loadFromFile();
         ChildData loadedChild = fileReader.loadChildData();
         weightHistory = fileReader.loadWeightHistory();
+        appointmentsList.addAll(fileReader.loadAppointments());
+        sortAppointments();
 
         if(loadedChild != null){
             child = loadedChild;
@@ -123,6 +134,22 @@ public class DashboardController {
                 }
             }
         });
+
+        colAppointmentDate.setCellValueFactory(new PropertyValueFactory<>("dateOfAppointment"));
+        colAppointmentDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
+        colAppointmentDate.setCellFactory(column -> new TableCell<MedicalAppointment, LocalDate>() {
+            @Override
+            protected void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.format(polishFormat));
+                }
+            }
+        });
+
+        appointmentTable.setItems(appointmentsList);
 
         //ustawienie wartości w polach formularza (Dziecko)
         babyName.setText(child.getName());
@@ -470,10 +497,10 @@ public class DashboardController {
 
         if (isVisible) {
             toggleAssistantButton.setText("Pokaż Plan na Jutro ⬇");
-            toggleAssistantButton.setStyle("-fx-font-size: 10px; -fx-background-color: #e0e0e0;"); // Szary
+            toggleAssistantButton.setStyle("-fx-font-size: 10px; -fx-background-color: #e0e0e0;");
         } else {
             toggleAssistantButton.setText("Ukryj Plan na Jutro ⬆");
-            toggleAssistantButton.setStyle("-fx-font-size: 10px; -fx-background-color: #ffe0b2;"); // Pomarańczowy
+            toggleAssistantButton.setStyle("-fx-font-size: 10px; -fx-background-color: #ffe0b2;");
         }
     }
 
@@ -499,5 +526,34 @@ public class DashboardController {
             alert.setContentText("Nowa lokalizacja: " + selectedDirectory.getName() + "\n\nUruchom aplikację ponownie, aby wczytać dane z nowego miejsca.");
             alert.showAndWait();
         }
+    }
+
+    @FXML
+    private void handleAddAppointmentAction() {
+        LocalDate date = appointmentDatePicker.getValue();
+        String desc = appointmentDescField.getText();
+
+        if (date != null && desc != null && !desc.isEmpty()) {
+            appointmentsList.add(new MedicalAppointment(date, desc));
+            sortAppointments();
+            fileReader.saveAppointments(new ArrayList<>(appointmentsList));
+            appointmentDatePicker.setValue(null);
+            appointmentDescField.clear();
+        } else {
+            showError("Brak danych", "Wybierz datę i wpisz opis wizyty!");
+        }
+    }
+
+    @FXML
+    private void handleRemoveAppointmentAction() {
+        MedicalAppointment selected = appointmentTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            appointmentsList.remove(selected);
+            fileReader.saveAppointments(new ArrayList<>(appointmentsList));
+        }
+    }
+
+    private void sortAppointments() {
+        appointmentsList.sort(Comparator.comparing(MedicalAppointment::getDateOfAppointment));
     }
 }
